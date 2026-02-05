@@ -96,17 +96,17 @@ Passo a Passo
 Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrutura da tabela.
 
 ETL (Processamento): Execute o comando abaixo para tratar os arquivos e gerar os CSVs:
+   ```bash
+    python processador.py
 
-Bash
-python processador.py
 Carga no Banco: Execute o script para inserir os dados:
 
-Bash
-python popular_banco.py
+   ```bash
+   python popular_banco.py
 Backend (API): Inicie o servidor da API:
 
-Bash
-uvicorn backend.main:app --reload
+   ```bash
+   uvicorn backend.main:app --reload
 Frontend: Abra o arquivo index.html diretamente no seu navegador.
 
 Autor: Rafael G. Souza
