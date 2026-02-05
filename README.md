@@ -85,12 +85,13 @@ Conforme solicitado nos critérios de avaliação, abaixo estão documentadas as
 ### Pré-requisitos
 1. Clone o repositório.
 2. Crie um ambiente virtual e instale as dependências:
-   ```bash
-   pip install -r requirements.txt
+    ```bash
+      pip install -r requirements.txt
+   ```
 Configure o arquivo .env na raiz com sua senha do MySQL:
 
-```Snippet de código
-DB_PASSWORD=sua_senha_aqui
+   ```Snippet de código
+   DB_PASSWORD=sua_senha_aqui
 ```
 
 Passo a Passo
@@ -110,6 +111,7 @@ Backend (API): Inicie o servidor da API:
 
    ```bash
    uvicorn backend.main:app --reload
+```
 Frontend: Abra o arquivo index.html diretamente no seu navegador.
 
 Autor: Rafael G. Souza
