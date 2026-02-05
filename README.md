@@ -89,8 +89,9 @@ Conforme solicitado nos critérios de avaliação, abaixo estão documentadas as
    pip install -r requirements.txt
 Configure o arquivo .env na raiz com sua senha do MySQL:
 
-Snippet de código
+```Snippet de código
 DB_PASSWORD=sua_senha_aqui
+```
 
 Passo a Passo
 Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrutura da tabela.
@@ -98,11 +99,13 @@ Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrut
 ETL (Processamento): Execute o comando abaixo para tratar os arquivos e gerar os CSVs:
    ```bash
     python processador.py
+```
 
 Carga no Banco: Execute o script para inserir os dados:
 
    ```bash
    python popular_banco.py
+```
 Backend (API): Inicie o servidor da API:
 
    ```bash
