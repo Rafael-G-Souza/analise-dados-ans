@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Dados (Não subir arquivos gigantes!)
+data/
+downloads/
+*.zip
+*.csv
+*.xlsx
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Variáveis de Ambiente (SEGURANÇA!)
+.env

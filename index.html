@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Intuitive Care - Rafael</title>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="frontend/styles.css">
+</head>
+
+<body>
+
+    <div id="app" class="container">
+        <h1>📊 Painel ANS Analytics</h1>
+
+        <div class="controls">
+            <input v-model="search" @keyup.enter="buscar" placeholder="Pesquisar por CNPJ ou Razão Social...">
+            <button @click="buscar">Buscar</button>
+        </div>
+
+        <div v-if="loading" style="text-align:center; padding:20px;">Carregando...</div>
+        <div v-else>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reg. ANS</th>
+                        <th>CNPJ</th>
+                        <th>Razão Social</th>
+                        <th>UF</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="op in operadoras" :key="op.reg_ans">
+                        <td>{{ op.reg_ans }}</td>
+                        <td>{{ op.cnpj }}</td>
+                        <td>{{ op.razao_social || 'N/D' }}</td>
+                        <td><strong>{{ op.uf || '-' }}</strong></td>
+
+                        <td>
+                            <button style="font-size: 0.8rem; padding: 5px 10px;" @click="abrirDetalhes(op)">
+                                Ver Detalhes
+                            </button>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <button :disabled="page <= 1" @click="mudarPagina(page - 1)">❮ Anterior</button>
+                <span>Página {{ page }} de {{ totalPaginas }} (Total: {{ totalRegistros }})</span>
+                <button :disabled="page >= totalPaginas" @click="mudarPagina(page + 1)">Próxima ❯</button>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <h3 style="text-align:center">Top 10 Estados por Despesa</h3>
+            <canvas id="graficoEstados"></canvas>
+        </div>
+        <div v-if="modalAberto" class="modal-overlay" @click.self="fecharModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>{{ operadoraSelecionada.razao_social }}</h3>
+                    <button class="close-btn" @click="fecharModal">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <p><strong>CNPJ:</strong> {{ operadoraSelecionada.cnpj }} <span class="badge">{{
+                            operadoraSelecionada.uf }}</span></p>
+                    <hr>
+
+                    <h4>Histórico de Despesas</h4>
+
+                    <div v-if="loadingDetalhes" style="text-align:center">Carregando histórico...</div>
+
+                    <table v-else>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in historico" :key="index">
+                                <td>{{ item.trimestre }} / {{ item.ano }}</td>
+                                <td>{{ item.descricao_conta }}</td>
+                                <td style="color: #c0392b; font-weight: bold;">
+                                    R$ {{ Number(item.valor_despesa).toLocaleString('pt-BR', {minimumFractionDigits: 2})
+                                    }}
+                                </td>
+                            </tr>
+                            <tr v-if="historico.length === 0">
+                                <td colspan="3" style="text-align:center">Nenhuma despesa registrada.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+    <script src="frontend/script.js"></script>
+
+</body>
+
+</html>
