@@ -36,6 +36,71 @@ O sistema automatiza a extração de arquivos zipados complexos, trata inconsist
 
 ---
 
+## ⚖️ Decisões Técnicas e Trade-offs
+
+Conforme solicitado nas instruções, abaixo estão documentadas as principais decisões de arquitetura e implementação, bem como as justificativas para cada escolha.
+
+### 1. ETL e Processamento de Dados
+
+#### **Estratégia de Processamento: Streaming/Incremental vs. In-Memory**
+* **Decisão:** Processamento incremental (arquivo a arquivo) com leitura otimizada via Pandas.
+* **Justificativa:** Embora o volume de dados atual (3 trimestres) pudesse caber na memória, optei por uma abordagem que processa cada arquivo ZIP individualmente. Isso garante que a solução seja **escalável** (Resiliente). [cite_start]Se precisássemos processar 10 anos de histórico, a abordagem *In-Memory* travaria por falta de RAM, enquanto a abordagem incremental continuaria funcionando com consumo de memória constante[cite: 38, 39].
+
+#### **Tratamento de Inconsistências de Encoding (O Desafio UTF-8 vs Latin1)**
+* **Problema:** Identificou-se que a ANS mistura arquivos em UTF-8 e Latin1 (CP1252), além de conter bytes inválidos (`0x8d`) em alguns arquivos de cadastro.
+* **Decisão:** Implementação de um `TextIOWrapper` com estratégia `errors='replace'`.
+* **Justificativa:** Forçar Latin1 corrompia caracteres em arquivos UTF-8 (ex: "ASSISTÊNCIA" virava "ASSISTÃNCIA"). Tentar apenas UTF-8 quebrava o script nos arquivos antigos. A solução híbrida adotada força a leitura em UTF-8 para preservar a acentuação correta e substitui bytes corrompidos isolados em vez de abortar o processo. [cite_start]Isso prioriza a **disponibilidade** e **integridade legível** dos dados[cite: 36, 50].
+
+#### **Tratamento de Dados Órfãos (Integridade Referencial)**
+* **Decisão:** Remover linhas de despesas onde o `REG_ANS` não pôde ser identificado/convertido para numérico.
+* **Justificativa:** O Registro ANS é a chave primária da operadora. Permitir dados sem essa chave violaria a integridade do banco de dados e geraria relatórios inconsistentes. [cite_start]Dados sem identificação de origem não têm valor analítico confiável neste contexto[cite: 50, 64].
+
+---
+
+### 2. Banco de Dados e Modelagem
+
+#### **Normalização: Tabela Única vs. Tabelas Separadas**
+* **Decisão:** Opção B - Tabelas Normalizadas (`operadoras` e `despesas` separadas).
+* **Justificativa:**
+    1.  **Redundância:** Repetir a `RazaoSocial`, `CNPJ` e `UF` para cada lançamento financeiro (milhares de linhas) desperdiçaria armazenamento e I/O.
+    2.  **Manutenibilidade:** Se uma operadora mudar de Razão Social, na tabela normalizada atualizamos apenas 1 linha. Na desnormalizada, teríamos que atualizar milhares de registros.
+    3.  [cite_start]**Performance:** Queries de agregação (somas, médias) são mais rápidas em tabelas de fatos (`despesas`) mais "magras" (apenas IDs e valores)[cite: 109, 110].
+
+#### **Tipos de Dados Monetários**
+* **Decisão:** Uso de `DECIMAL` (ou equivalente no Pandas antes da inserção) em vez de `FLOAT`.
+* **Justificativa:** Dados financeiros exigem precisão exata. O tipo `FLOAT` utiliza ponto flutuante binário, o que pode acarretar erros de arredondamento em somas grandes (o clássico problema do `0.1 + 0.2 != 0.3`). [cite_start]Para contabilidade, precisão decimal é obrigatória[cite: 114, 116].
+
+#### **Inserção de Dados: Script Python vs. LOAD DATA INFILE**
+* **Decisão:** Inserção via script Python (`mysql-connector`) em lotes.
+* **Justificativa:** O comando nativo `LOAD DATA` do SQL é mais rápido, porém extremamente sensível a configurações de servidor e encoding (especialmente em Windows). [cite_start]O script Python atua como uma camada de segurança, sanitizando dados (convertendo "Não Encontrado" para `NULL`) e garantindo que o encoding `utf8mb4` seja respeitado independente do sistema operacional onde o teste for corrigido[cite: 118, 119].
+
+---
+
+### 3. API e Backend (Sugestão - Ajuste conforme o que você fez)
+
+#### **Framework: FastAPI vs. Flask**
+* **Decisão:** FastAPI.
+* [cite_start]**Justificativa (Se FastAPI):** Alta performance (assíncrono), validação de dados automática com Pydantic e geração automática de documentação (Swagger UI), o que facilita o teste das rotas conforme exigido[cite: 147, 150].
+
+
+#### **Estratégia de Paginação**
+* **Decisão:** Offset-based (`LIMIT` / `OFFSET`).
+* **Justificativa:** O volume de operadoras (cerca de 700-1000 ativas) não justifica a complexidade de *Cursor-based pagination*. [cite_start]O *Offset* é simples de implementar, intuitivo para o Frontend e performático o suficiente para este volume de dados[cite: 152, 155].
+
+---
+
+### 4. Frontend (Vue.js)
+
+#### **Busca e Filtros: Server-side vs. Client-side**
+* **Decisão:** Busca no Servidor (Server-side).
+* **Justificativa:** Embora o dataset atual seja pequeno, em um cenário real de "Big Data" da ANS, carregar todos os registros para o navegador do cliente causaria lentidão e alto consumo de memória. [cite_start]A busca no servidor é a solução correta pensando em escalabilidade e performance do dispositivo do usuário[cite: 175, 178].
+
+#### **Gerenciamento de Estado**
+* **Decisão:** Props e Events simples (ou Composition API).
+* **Justificativa:** A aplicação possui baixa complexidade de compartilhamento de estado (basicamente listagem -> detalhes). [cite_start]Introduzir uma lib complexa como Pinia ou Vuex adicionaria "overhead" desnecessário e violaria o princípio KISS (Keep It Simple) valorizado no teste[cite: 181, 206].
+
+---
+
 ## ⚙️ Pré-requisitos
 
 Antes de começar, você precisa ter instalado:
