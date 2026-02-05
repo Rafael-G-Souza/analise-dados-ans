@@ -92,16 +92,20 @@ Configure o arquivo .env na raiz com sua senha do MySQL:
 Snippet de código
 DB_PASSWORD=sua_senha_aqui
 Passo a Passo
-Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrutura.
+Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrutura da tabela.
 
-ETL: Execute python processador.py para tratar os arquivos e gerar os CSVs.
+ETL (Processamento): Execute o comando abaixo para tratar os arquivos e gerar os CSVs:
 
-Carga: Execute python popular_banco.py para inserir os dados no banco.
+Bash
+python processador.py
+Carga no Banco: Execute o script para inserir os dados:
 
-Backend: Inicie a API:
+Bash
+python popular_banco.py
+Backend (API): Inicie o servidor da API:
 
 Bash
 uvicorn backend.main:app --reload
-Frontend: Abra o arquivo index.html no seu navegador.
+Frontend: Abra o arquivo index.html diretamente no seu navegador.
 
 Autor: Rafael G. Souza
