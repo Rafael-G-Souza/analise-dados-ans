@@ -90,7 +90,7 @@ Conforme solicitado nos critérios de avaliação, abaixo estão documentadas as
 Configure o arquivo .env na raiz com sua senha do MySQL:
 
       Snippet de código
-DB_PASSWORD=sua_senha_aqui
+      DB_PASSWORD=sua_senha_aqui
 Passo a Passo
 Banco de Dados: Execute o script sql/schema.sql no seu MySQL para criar a estrutura da tabela.
 
