@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import mysql.connector
 from typing import Optional, List
 from pydantic import BaseModel
+import os
+from dotenv import load_dotenv # Você precisará instalar: pip install python-dotenv
+
+load_dotenv()
 
 app = FastAPI(title="API ANS Analytics")
 
@@ -17,7 +21,7 @@ app.add_middleware(
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root', 
-    'password': 'Kdallete250995$', 
+    'password': os.getenv('DB_PASSWORD'), 
     'database': 'ans_analytics',
     'charset': 'utf8mb4',
     'collation': 'utf8mb4_unicode_ci'
@@ -26,11 +30,10 @@ DB_CONFIG = {
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
-# --- A CORREÇÃO FINAL ESTÁ AQUI ---
+
 class Operadora(BaseModel):
     reg_ans: int
     cnpj: str
-    # Mudamos de 'str' para 'Optional[str] = None' para aceitar NULL do banco
     razao_social: Optional[str] = None 
     uf: Optional[str] = None
 
